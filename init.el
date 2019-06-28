@@ -181,7 +181,6 @@
    "p" 'projectile-command-map
    "pp" 'projectile-persp-switch-project
    "pf" 'counsel-projectile
-   "pl" 'test-counsel-describe-function
 
    "b" '(:ignore t :which-key "Buffers")
    "bb"  'ivy-switch-buffer
