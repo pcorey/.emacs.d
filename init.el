@@ -4,7 +4,8 @@
 ;; - https://dev.to/huytd/emacs-from-scratch-1cg6
 ;; - https://sam217pa.github.io/2016/09/13/from-helm-to-ivy/#fnref:2
 
-
+(setq make-backup-files nil) ; stop creating backup~ files
+(setq auto-save-default nil) ; stop creating #autosave# files
 (setq delete-old-versions -1 )
 (setq inhibit-startup-screen t )
 (setq ring-bell-function 'ignore )
@@ -13,10 +14,18 @@
 (setq sentence-end-double-space nil)
 (setq default-fill-column 80)
 (setq initial-scratch-message "")
+(setq word-wrap t)
+
+;; https://github.com/danielmai/.emacs.d/blob/master/config.org
+(defalias 'yes-or-no-p 'y-or-n-p)
+(blink-cursor-mode -1)
+(show-paren-mode t)
 
 (setq-default mode-line-format nil)
 
+;; (toggle-word-wrap)
 (global-auto-revert-mode t)
+(global-display-line-numbers-mode)
 (electric-pair-mode)
 
 
@@ -54,19 +63,21 @@
 (use-package writeroom-mode
   :ensure t
   :init
-  (setq-default writeroom-major-modes '(text-mode prog-mode term-mode fundamental-mode))
+  (setq-default writeroom-major-modes '(markdown-mode))
   :config
   (global-writeroom-mode))
 
 ;; Font
-(add-to-list 'default-frame-alist '(font . "Fira Code-14" ))
-(set-face-attribute 'default t :font "Fira Code-14" )
+;; (add-to-list 'default-frame-alist '(font . "Fira Code-14" ))
+;; (set-face-attribute 'default t :font "Fira Code-14" )
+(add-to-list 'default-frame-alist '(font . "Cascadia Code-12" ))
+(set-face-attribute 'default t :font "Cascadia Code-12" )
 
 ;; Themes
 (use-package doom-themes
   :ensure t
   :config
-  (load-theme 'doom-molokai t))
+  (load-theme 'doom-peacock t))
 
 ;; Which Key
 (use-package which-key
@@ -77,11 +88,58 @@
   :config
   (which-key-mode))
 
+(use-package flycheck
+  :ensure t
+  :init (global-flycheck-mode))
+
+;; (use-package lsp-mode
+;;   :ensure t
+;;   :init
+;;   (setq lsp-auto-guess-root t)
+;;   (setq lsp-prefer-flymake nil)
+;;   :config
+;;   (add-hook 'js2-mode-hook #'lsp)
+;;   (add-hook 'rjsx-mode-hook #'lsp))
+
+;; (use-package lsp-ui
+;;   :ensure t
+;;   :requires lsp-mode flycheck
+;;   :config
+;;   (setq lsp-ui-doc-enable t
+;;   	lsp-ui-doc-use-childframe nil
+;;   	lsp-ui-doc-position 'top
+;;   	lsp-ui-doc-include-signature t
+;;   	lsp-ui-sideline-enable nil
+;;   	lsp-ui-flycheck-enable t
+;;   	lsp-ui-flycheck-list-position 'right
+;;   	lsp-ui-flycheck-live-reporting t
+;;   	lsp-ui-peek-enable t
+;;   	lsp-ui-peek-list-width 60
+;;   	lsp-ui-peek-peek-height 25)
+;;   (add-hook 'lsp-mode-hook 'lsp-ui-mode))
+
+;; (use-package company-lsp
+;;   :ensure t
+;;   :commands company-lsp)
+
+(use-package company
+  :ensure t
+  :init
+  (add-hook 'after-init-hook 'global-company-mode))
+
+;; Elixir
+(use-package elixir-mode
+  :ensure t)
+
 ;; Javascript
 (use-package js2-mode 
   :ensure t
   :init
   (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode)))
+(use-package rjsx-mode
+  :ensure t
+  :init
+  (add-to-list 'auto-mode-alist '("components\\/.*\\.js\\'" . rjsx-mode)))
 (use-package add-node-modules-path
   :ensure t)
 (use-package prettier-js
@@ -92,6 +150,15 @@
   (add-hook 'js2-mode-hook 'prettier-js-mode)
   (add-hook 'web-mode-hook 'add-node-modules-path)
   (add-hook 'web-mode-hook 'prettier-js-mode))
+
+;; Markdown
+(use-package markdown-mode
+  :ensure t
+  :commands (markdown-mode gfm-mode)
+  :mode (("README\\.md\\'" . gfm-mode)
+	 ("\\.md\\'" . markdown-mode)
+	 ("\\.markdown\\'" . markdown-mode))
+  :init (setq markdown-command "multimarkdown"))
 
 ;; Multi-Term
 (use-package multi-term
@@ -154,7 +221,10 @@
   :ensure t
   :config
   (key-chord-mode 1)
-  (key-chord-define evil-insert-state-map "kj" 'evil-normal-state))
+  (key-chord-define evil-insert-state-map "kj" 'evil-normal-state)
+  (key-chord-define evil-insert-state-map "Kj" 'evil-normal-state)
+  (key-chord-define evil-insert-state-map "KJ" 'evil-normal-state)
+  (key-chord-define evil-insert-state-map "kJ" 'evil-normal-state))
 (use-package general
   :ensure t
   :config 
@@ -162,7 +232,7 @@
    "M-x" 'counsel-M-x)
   (general-define-key
    :states '(normal visual emacs)
-   "/" 'swiper
+   ;; "/" 'swiper
    "gcc" 'evilnc-comment-or-uncomment-lines)
   (general-define-key
    :states '(normal visual)
@@ -173,14 +243,16 @@
    :prefix "SPC"
    :non-normal-prefix "C-SPC"
    "'"   'multi-term
-   "/"   'counsel-ag
+   "/"   'counsel-rg
    ":"   'counsel-M-x
    "."   'edit-emacs-configuration
+   "\""  'split-window-below
+   "%"  'split-window-right
    "TAB" 'toggle-buffers
 
    "p" 'projectile-command-map
    "pp" 'projectile-persp-switch-project
-   "pf" 'counsel-projectile
+   "pf" 'counsel-projectile-find-file
 
    "b" '(:ignore t :which-key "Buffers")
    "bb"  'ivy-switch-buffer
@@ -190,8 +262,8 @@
    "wh"  'windmove-left
    "wk"  'windmove-up
    "wj"  'windmove-down
-   "w/"  'split-window-right
-   "w-"  'split-window-below
+   "w\""  'split-window-below
+   "w%"  'split-window-right
    "wx"  'delete-window
 
    "a" '(:ignore t :which-key "Applications")
@@ -214,7 +286,10 @@
    
    "g" '(:ignore t :which-key "Code?")
    "gc" 'evilnc-comment-or-uncomment-lines
-   ))
+   )
+  (general-define-key
+   :states '(visual)
+   "gc" 'evilnc-comment-or-uncomment-lines))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
