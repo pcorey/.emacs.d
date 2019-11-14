@@ -186,6 +186,11 @@
   :ensure t
   :init
   (setq projectile-completion-system 'ivy)
+  (setq projectile-indexing-method 'alien)
+  (setq projectile-sort-order 'recently-active)
+
+  ; Route errors to /dev/null
+  (setq projectile-git-submodule-command "git submodule --quiet foreach 'echo $path' 2>/dev/null | tr '\\n' '\\0'")
   :config
   (projectile-mode))
 (use-package counsel-projectile 
@@ -206,6 +211,10 @@
   :ensure t
   :config
   (global-evil-surround-mode 1))
+
+;; JS Doc
+(use-package js-doc
+  :ensure t)
 
 ;; Edit this config
 (defun edit-emacs-configuration ()
@@ -286,6 +295,10 @@
    
    "g" '(:ignore t :which-key "Code?")
    "gc" 'evilnc-comment-or-uncomment-lines
+
+   "d" '(:ignore t :which-key "Comments")
+   "df" 'js-doc-insert-function-doc
+   "dm" 'js-doc-insert-file-doc
    )
   (general-define-key
    :states '(visual)
